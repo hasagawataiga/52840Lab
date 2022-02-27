@@ -1,2 +1,31 @@
 Name: TUAN VO LE HOANG
 Student ID: 52840
+
+    I am Vietnamese - a beautiful country - with a lot of nice places to visit (if you planned to travel and have no choice yet, please give Vietnam a chance).
+Trust me, Vietnam deserved it. After seeing Vietnam by yourself, you will see that Vietnam is not just famous for war (with America if you ask).
+
+I studied about Mechanical engineering in Vietnam. In this case, you can call me a newbie in IT industry.
+It is quite confused about the my future career while there are so many paths (mobile, embeded, web,..)
+I wondered whether this field or that field is suitable to me. 
+In this case, I am trying to dive into each field to have a reality observation.
+Now, I am working for a team in Unity project as intern.
+I am interested in Cybersecurity or Data security, too.
+On other hand, I have courses about web technologies for this semester.
+
+I planned to give me 1 year to demonstrate which path I will choose to be my main career.
+I have learned about:
+    Java
+    C#
+    C++
+    Python
+    Algorithm
+    Structure & Complexity
+    OOP
+    Unity
+    HTML
+By the way, I am studied about CSS and JS in order to create my own website or article blog.
+And Linux (Kali) for cybersecurity.
+
+I know that stuying a lot of things and do not focus on anything is not a good idea.
+ But I have no choice because Every single path is not familiar to me (I have to study and work to know what is reasonable)
+If you have suggestions or advices, please help me. I am in a "chaos-orientation".
