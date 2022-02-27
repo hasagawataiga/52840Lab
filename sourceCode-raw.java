@@ -106,12 +106,14 @@ class Player {
         }
         int mineCounts = 0;
         int knightArmies = 0;           //count the number of KNIGHT we have
-        int side = 0;                   //0 for not know, 1 for left, 2 for right
+        int side = 0;                   //0 for not know, 1 for left, 2 for right\
+
         while (true) {
             ArrayList<Slot> myKnightBarracks = new ArrayList<Slot>();
             ArrayList<Slot> enemyStructures = new ArrayList<Slot>();
             ArrayList<Slot> blankSlots = new ArrayList<Slot>();
             ArrayList<Slot> mineStructures = new ArrayList<Slot>();
+            boolean isTouchedMine = false;
             int gold = in.nextInt();
             int touchedSite = in.nextInt(); // -1 if none
             int touchedSiteOwner = -2;
@@ -135,6 +137,9 @@ class Player {
                 }
                 if(siteId == touchedSite){
                     touchedSiteOwner = owner;
+                    if(structureType == 0){
+                        isTouchedMine = true;
+                    }
                 }
             }
 
@@ -143,16 +148,14 @@ class Player {
                     if(slots[i].getParam2() == 0){
                         myKnightBarracks.add(slots[i]);
                     }
-                    else if(slots[i].getParam2() == -1){
-                        if(slots[i].getParam1() < 4){
+                    else if((slots[i].getParam2() == -1)){
                             mineStructures.add(slots[i]);
-                        }
                     }
                 }
                 else if(slots[i].getOwner() == 1){
                     enemyStructures.add(slots[i]);
                 }
-                else{
+                else if(slots[i].getOwner() == -1){
                     blankSlots.add(slots[i]);
                 }
             }
@@ -176,14 +179,7 @@ class Player {
                     }
                 }
             }
-            //int theNearestY = theNearestBlankSlot.getCoordinate().getY();
-            
-            /*for(int i = 0; i < blankSlots.size(); i++){
-                if(blankSlots.get(i).getCoordinate().getY() <= theNearestY){
-                    theNearestY = blankSlots.get(i).getCoordinate().getY();
-                    theNearestBlankSlot = blankSlots.get(i);
-                }
-            }*/
+
             // Write an action using System.out.println()
             // To debug: System.err.println("Debug messages...");
             Player playerObj = new Player();
@@ -191,33 +187,20 @@ class Player {
             Slot theNearestBlankSlot = playerObj.NearestBlankSlot(blankSlots, side);
             String queenAction = "WAIT";
             if((touchedSite != -1) && (touchedSiteOwner == -1)){
-                if(mineCounts < 3){
+                if(mineStructures.size() < 3){
                     queenAction = "BUILD " + touchedSite + " MINE";
-                    mineCounts++;
                 }
-                else if(knightArmies < 2){
+                else if(myKnightBarracks.size() < 2){
                     queenAction = "BUILD " + touchedSite + " BARRACKS-KNIGHT";
-                    knightArmies++;
                 }
-                else{
-                    //if(mineStructures.size() != 0){
-                        //queenAction = playerObj.Move(slots, queenCoordinate, mineStructures.get(0));
-                    //}else{
-                        queenAction = playerObj.Move(slots, queenCoordinate, theNearestBlankSlot);
-                    //}
-                }
+
             }
-            else if((touchedSite != -1) && (touchedSiteOwner == 0)){
-                //if(mineStructures.size() != 0){
-                    //queenAction = playerObj.Move(slots, queenCoordinate, mineStructures.get(0));
-                //}else{
-                    //queenAction = playerObj.Move(slots, queenCoordinate, theNearestBlankSlot);
-                //}
-                if(mineStructures.size() > 0){
-                    queenAction = "BUILD " + touchedSite + " MINE";
-                }else{
-                    queenAction = playerObj.Move(slots, queenCoordinate, theNearestBlankSlot);
-                }
+            else if((touchedSite != -1) && (touchedSiteOwner == 0) && isTouchedMine && (mineStructures.size() > 0)){
+                    for(int i = 0; i < mineStructures.size(); i++){
+                        if((touchedSite == mineStructures.get(i).getSiteId()) && (mineStructures.get(i).getParam1() < 4)){
+                            queenAction = "BUILD " + touchedSite + " MINE";
+                        }
+                    }
             }else{
                 queenAction = playerObj.Move(slots, queenCoordinate, theNearestBlankSlot);
             }
@@ -231,17 +214,21 @@ class Player {
             System.out.println(queenAction);
             // Second line: A set of training instructions
             System.out.println(trainCommand);
-            System.err.println(myKnightBarracks.size());
+            System.err.println("Side: " + side);
+            System.err.println("Mine:" + mineStructures.size());
+            System.err.println("Knight Barracks:" + myKnightBarracks.size());
             System.err.println(playerObj.Train(slots, myKnightBarracks, gold));
+            System.err.println("First blankslot: " + blankSlots.get(0).getCoordinate());
             System.err.println("Coordinate of blankslot:" + theNearestBlankSlot.getCoordinate());
-            System.err.println("SiteId of touchedSite and owner:" + touchedSite + " " + touchedSiteOwner);
+            System.err.println("TouchedSite and owner:" + touchedSite + " " + touchedSiteOwner);
+            System.err.println("isMine: " + isTouchedMine);
             System.err.println("The queen actions:" + queenAction);
         }
     }
 
     public Slot NearestBlankSlot(ArrayList<Slot> blankSlots, int side){
         Slot nearestSlot = blankSlots.get(0);
-        int minDistance = 2165;
+        int minDistance = 3000;
         Coordinate root;
         if(side == 1){
             root = new Coordinate(0, 0);
