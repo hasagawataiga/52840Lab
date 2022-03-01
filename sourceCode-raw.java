@@ -104,8 +104,6 @@ class Player {
             int radius = in.nextInt();
             slots[i] = new Slot(siteId, x, y, radius, -1, -1, -1, -1, -1, -1);
         }
-        int mineCounts = 0;
-        int knightArmies = 0;           //count the number of KNIGHT we have
         int side = 0;                   //0 for not know, 1 for left, 2 for right\
 
         while (true) {
@@ -117,6 +115,7 @@ class Player {
             int gold = in.nextInt();
             int touchedSite = in.nextInt(); // -1 if none
             int touchedSiteOwner = -2;
+            int levelOfMine = 0;
             for (int i = 0; i < numSites; i++) {
                 int siteId = in.nextInt();
                 int ignore1 = in.nextInt(); // gold
@@ -139,23 +138,24 @@ class Player {
                     touchedSiteOwner = owner;
                     if(structureType == 0){
                         isTouchedMine = true;
+                        levelOfMine = param1;
                     }
                 }
             }
 
             for(int i = 0; i < slots.length;i++){
                 if(slots[i].getOwner() == 0){
-                    if(slots[i].getParam2() == 0){
+                    if(slots[i].getStructureType() == 2){
                         myKnightBarracks.add(slots[i]);
                     }
-                    else if((slots[i].getParam2() == -1)){
+                    else if((slots[i].getStructureType() == 0)){
                             mineStructures.add(slots[i]);
                     }
                 }
                 else if(slots[i].getOwner() == 1){
                     enemyStructures.add(slots[i]);
                 }
-                else if(slots[i].getOwner() == -1){
+                else if(slots[i].getStructureType() == -1){
                     blankSlots.add(slots[i]);
                 }
             }
@@ -193,14 +193,17 @@ class Player {
                 else if(myKnightBarracks.size() < 2){
                     queenAction = "BUILD " + touchedSite + " BARRACKS-KNIGHT";
                 }
-
+                else{
+                    queenAction = "MOVE " + playerObj.HideSpot(side, queenCoordinate);
+                }
             }
-            else if((touchedSite != -1) && (touchedSiteOwner == 0) && isTouchedMine && (mineStructures.size() > 0)){
-                    for(int i = 0; i < mineStructures.size(); i++){
-                        if((touchedSite == mineStructures.get(i).getSiteId()) && (mineStructures.get(i).getParam1() < 4)){
-                            queenAction = "BUILD " + touchedSite + " MINE";
-                        }
-                    }
+            else if((touchedSite != -1) && (touchedSiteOwner == 0) && isTouchedMine && (levelOfMine < 5)){
+                if(myKnightBarracks.size() != 0){
+                    queenAction = "BUILD " + touchedSite + " MINE";
+                }
+                else{
+                    queenAction = playerObj.Move(slots, queenCoordinate, theNearestBlankSlot);
+                }
             }else{
                 queenAction = playerObj.Move(slots, queenCoordinate, theNearestBlankSlot);
             }
@@ -218,6 +221,7 @@ class Player {
             System.err.println("Mine:" + mineStructures.size());
             System.err.println("Knight Barracks:" + myKnightBarracks.size());
             System.err.println(playerObj.Train(slots, myKnightBarracks, gold));
+            System.err.println("blankSlot: " + blankSlots.size());
             System.err.println("First blankslot: " + blankSlots.get(0).getCoordinate());
             System.err.println("Coordinate of blankslot:" + theNearestBlankSlot.getCoordinate());
             System.err.println("TouchedSite and owner:" + touchedSite + " " + touchedSiteOwner);
@@ -226,8 +230,20 @@ class Player {
         }
     }
 
+    public String HideSpot(int side, Coordinate queenCoordinate){
+        int x = 0;
+        int y = 0;
+        if(side == 1){
+            x = queenCoordinate.getX() - 40;
+            y = queenCoordinate.getY() - 40;
+        }else{
+            x = queenCoordinate.getX() + 40;
+            y = queenCoordinate.getY() + 40;
+        }
+        return x + " " + y;
+    }
     public Slot NearestBlankSlot(ArrayList<Slot> blankSlots, int side){
-        Slot nearestSlot = blankSlots.get(0);
+        Slot nearestSlot = blankSlots.get(1);
         int minDistance = 3000;
         Coordinate root;
         if(side == 1){
