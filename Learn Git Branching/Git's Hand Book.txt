@@ -1,0 +1,51 @@
+by Tuan Hoang
+
+git checkout <branch>
+	move to this branch
+
+git checkout -b <newBranch> <existBranch><~/^numberCommits>
+	create a new branch <numberCommits> far backward from <existBranch> and move into it
+
+git branch -f <newBranch> <existBranch><~/^numberCommits>
+	create a new branch <numberCommits> far backward from <existBranch>
+
+
+git describe <ref>
+	describe how many commits the nearest tag far from the <ref>
+
+git clone
+	create a remote repository.
+
+origin/main
+
+	origin: name of remote repo
+	main: name of branch
+
+git fetch
+	commits were downloaded and uploaded to remote and the origin/main was updated to reflect this.
+	git fetch performs two main steps, and two main steps only. It:
+
+	    -downloads the commits that the remote has but are missing from our local repository, and...
+	    -updates where our remote branches point (for instance, origin/main)
+how to push commit c3 if it is based on c1, and remote has new commit c2. It is impossible to push c3 to remote
+	git fetch: take the commit c2 to local.
+	git rebase origin/main		or 	git merge origin/main
+	git push
+		-For more convenience
+			git pull --rebase
+			git push
+Way to set remote tracking on a branch is to simply use:
+	git branch -u origin/main <branch>
+	in the case <branch> is already checked out, you can even leave it off as:
+	git branch -u o/main
+git push origin main
+	take all commits in branch "main" in local repository, then go to the branch "main" on the remote
+	named "origin" and placed all the missing commits.
+git push origin <source>:<destination>
+	take all commits in branch <source> in local, then go to the branch <destination> on the remote named "origin" and placed all the missing commits.
+git fetch origin foo
+	Git will go to the foo branch on the remote, grab all the commits that aren't present locally, and then plop them down onto the o/foo branch locally.
+git fetch origin :<destination>
+	without the <source>
+	2 scenarios:+ if the remote has <destination>, it will be deleted,
+		    + if the remote does not have <destination>, it will be created.
