@@ -137,7 +137,7 @@ class Player {
         int side = 0;                   //0 for not know, 1 for left, 2 for right\
         boolean isFirstFrame = true;
         Coordinate root = new Coordinate(0, 0);         //use the check which the nearest corner is (top-left or bottom-right)
-        Slot[] knightBarracks = new Slot[] {new Slot(), new Slot()};        //stored my knight barracks
+        Slot[] knightBarracks = new Slot[] {new Slot()};        //stored my knight barracks
         Slot[] minerals = new Slot[]{new Slot(), new Slot(), new Slot()};       //stored my minerals
         Slot[] towers = new Slot[]{new Slot(), new Slot(), new Slot()};     //stored my towers
         Slot nextTarget = new Slot();
@@ -200,36 +200,39 @@ class Player {
                         return o1.getDistance() - o2.getDistance();
                     }
                 });
-                knightBarracks[0] = slotsClone[0];          //take the nearest slots from clone of slots for each my structures
-                knightBarracks[1] = slotsClone[1];
-                minerals[0] = slotsClone[2];
-                minerals[1] = slotsClone[3];
+                knightBarracks[0] = slotsClone[5];          //take the nearest slots from clone of slots for each my structures
+                minerals[0] = slotsClone[0];
+                minerals[1] = slotsClone[1];
                 minerals[2] = slotsClone[4];
-                towers[0] = slotsClone[5];
-                towers[1] = slotsClone[6];
-                towers[2] = slotsClone[7];
+                towers[0] = slotsClone[2];
+                towers[1] = slotsClone[3];
+                towers[2] = slotsClone[6];
                 nextTarget = slotsClone[0];
                 isFirstFrame = false;
             }else{
                 for(int i = 0; i < slots.length; i++){          //updated my structures' attribute each frame
-                    for(int k = 0; k < knightBarracks.length; k++){
-                        if(slots[i].getSiteId() == knightBarracks[k].getSiteId()){
-                            knightBarracks[k].setParam1(slots[i].getParam1());
-                            break;
+                    if(slots[i].getParam2() == 2){
+                        for(int k = 0; k < knightBarracks.length; k++){
+                            if(slots[i].getSiteId() == knightBarracks[k].getSiteId()){
+                                knightBarracks[k].setParam1(slots[i].getParam1());
+                                break;
+                            }
                         }
-                    }
-                    for(int k = 0; k < minerals.length; k++){
-                        if(slots[i].getSiteId() == minerals[k].getSiteId()){
-                            minerals[k].setParam1(slots[i].getParam1());
-                            break;
+                    }else if(slots[i].getParam2() == 0){
+                        for(int k = 0; k < minerals.length; k++){
+                            if(slots[i].getSiteId() == minerals[k].getSiteId()){
+                                minerals[k].setParam1(slots[i].getParam1());
+                                break;
+                            }
                         }
-                    }
-                    for(int k = 0; k < towers.length; k++){
-                        if(slots[i].getSiteId() == towers[k].getSiteId()){
-                            towers[k].setParam1(slots[i].getParam1());
-                            break;
+                    }else if(slots[i].getParam2() == 1){
+                        for(int k = 0; k < towers.length; k++){
+                            if(slots[i].getSiteId() == towers[k].getSiteId()){
+                                towers[k].setParam1(slots[i].getParam1());
+                                break;
+                            }
                         }
-                    }
+                    }                  
                 }
             }
             String queenCommand = "WAIT";
@@ -247,7 +250,7 @@ class Player {
             }
 
             //Train command
-            if(gold > 80){
+            if(gold >= 180){
                 trainCommand = player.Train(slots, knightBarracks, gold);
             }
             // Write an action using System.out.println()
@@ -255,7 +258,7 @@ class Player {
             System.err.println("Side: " + side);
             System.err.println("Slots: " + slots.length);
             System.err.println("Mine: " + minerals[0].getSiteId() + " " + minerals[1].getSiteId() + " " + minerals[2].getSiteId());
-            System.err.println("Knight Barracks: " + knightBarracks[0].getSiteId() + " " + knightBarracks[1].getSiteId());
+            System.err.println("Knight Barracks: " + knightBarracks[0].getSiteId());
             System.err.println("Towers: " + towers[0].getSiteId() + " " + towers[1].getSiteId() + " " + towers[2].getSiteId());
             System.err.println("Next target: " + nextTarget.getSiteId());
             System.err.println(player.Train(slots, knightBarracks, gold));
@@ -303,7 +306,27 @@ class Player {
 
     //Take next target
     public Slot NextTarget(Slot[] knightBarracks, Slot[] minerals, Slot[] towers){
-        for(int i = 0; i < knightBarracks.length; i++){
+        if(minerals[0].getParam1() == -1){
+            return minerals[0];
+        }else if(minerals[1].getParam1() == -1){
+            return minerals[1];
+        }else if(towers[0].getParam1() == -1){
+            return towers[0];
+        }else if(towers[1].getParam1() == -1){
+            return towers[1];
+        }else if(knightBarracks[0].getParam1() == -1){
+            return knightBarracks[0];
+        }else if(minerals[0].getParam1() < 3){
+            return minerals[0];
+        }else if(minerals[1].getParam1() < 3){
+            return minerals[1];
+        }else if(minerals[2].getParam1() < 3){
+            return minerals[2];
+        }else{
+            return minerals[0];
+        }
+        
+        /* for(int i = 0; i < knightBarracks.length; i++){
             if(knightBarracks[i].getParam1() == -1){
                 return knightBarracks[i];
             }
@@ -323,11 +346,14 @@ class Player {
                 return minerals[i];
             }
         }
-        return towers[0];
+        return towers[0]; */
     }
 
     //Calculate distance
     public int Distance(Slot slot, Coordinate root){
+        
+        
+        
         int distance = 0;
         int slotX = slot.getCoordinate().getX();
         int slotY = slot.getCoordinate().getY();
