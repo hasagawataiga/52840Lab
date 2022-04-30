@@ -106,7 +106,7 @@ class Player {
                 if(myMonstersIndex > 0){
                     Entity myMonstersObj = myMonsters.get(myMonsters.size() - myMonstersIndex);
                     if(mine.getMana() > 20){
-                        if((myMonstersObj.getDistance(myRoot) < 5000f) && (Distance(myHeroes[i], myMonstersObj.getCoordinate()) < 1280)){
+                        if((myMonstersObj.getDistance(myRoot) < 8000f) && (Distance(myHeroes[i], myMonstersObj.getCoordinate()) < 1280)){
                             System.out.println("SPELL WIND " + enemyRoot);
                         }else{
                             System.out.println("MOVE " + myMonstersObj.getCoordinate());
@@ -140,7 +140,6 @@ class Player {
             //System.err.println("Enemy's stats: " + enemy.getBaseHealth() + " " + enemy.getMana());
             System.err.println("Monsters: " + myMonsters.size());
             System.err.println("\t " + myMonsters);
-            in.close();
         }
     }
     //Heroes move
