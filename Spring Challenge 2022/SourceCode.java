@@ -108,6 +108,8 @@ class Player {
                     if(mine.getMana() > 20){
                         if((myMonstersObj.getDistance(myRoot) < 8000f) && (Distance(myHeroes[i], myMonstersObj.getCoordinate()) < 1280)){
                             System.out.println("SPELL WIND " + enemyRoot);
+                        }else if((myMonstersObj.getDistance(myRoot) >= 8000f) && (Distance(myHeroes[i], myMonstersObj.getCoordinate()) < 1280) && (Distance(myHeroes[i], myMonstersObj.getCoordinate()) > 800)){
+                            System.out.println("SPELL CONTROL " + myMonstersObj.getId() + " " + enemyRoot);
                         }else{
                             System.out.println("MOVE " + myMonstersObj.getCoordinate());
                         }
