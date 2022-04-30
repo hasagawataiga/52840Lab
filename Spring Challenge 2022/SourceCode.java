@@ -18,12 +18,15 @@ class Player {
 
         //Needed variables
         Coordinate myRoot = new Coordinate();
+        Coordinate enemyRoot = new Coordinate();
         if(baseX > 10){
             myBase = 1;
             myRoot = new Coordinate(17630, 9000);
+            enemyRoot = new Coordinate(0, 0);
         }else{
             myBase = 0;
             myRoot = new Coordinate(0, 0);
+            enemyRoot = new Coordinate(17630, 9000);
         }
         Resource mine = new Resource();
         Resource enemy = new Resource();
@@ -31,9 +34,10 @@ class Player {
         int myHeroesIndex = 0;
         Entity[] enemyHeroes = new Entity[3];
         int enemyHeroesIndex = 0;
-        Entity[] monsters;
+        ArrayList<Entity> monsters = new ArrayList<Entity>();
         int monstersIndex = 0;
         ArrayList<Entity> myMonsters = new ArrayList<Entity>();
+        ArrayList<Entity> otherMonsters = new ArrayList<Entity>();
         // game loop
         while (true) {
             //Reseted parameters
@@ -41,6 +45,8 @@ class Player {
             enemyHeroesIndex = 0;
             monstersIndex = 0;
             myMonsters = new ArrayList<Entity>();
+            monsters = new ArrayList<Entity>();
+            otherMonsters = new ArrayList<Entity>();
             //Take new value
             for (int i = 0; i < 2; i++) {
                 int health = in.nextInt(); // Each player's base health
@@ -52,7 +58,6 @@ class Player {
                 }
             }
             int entityCount = in.nextInt(); // Amount of heros and monsters you can see
-            monsters = new Entity[entityCount - 6];
             for (int i = 0; i < entityCount; i++) {
                 int id = in.nextInt(); // Unique identifier
                 int type = in.nextInt(); // 0=monster, 1=your hero, 2=opponent hero
@@ -66,7 +71,7 @@ class Player {
                 int nearBase = in.nextInt(); // 0=monster with no target yet, 1=monster targeting a base
                 int threatFor = in.nextInt(); // Given this monster's trajectory, is it a threat to 1=your base, 2=your opponent's base, 0=neither
                 if(type == 0){
-                    monsters[monstersIndex] = new Entity(id, type, new Coordinate(x, y), shieldLife, isControlled, health, new SpeedVector(vx, vy), nearBase, threatFor);
+                    monsters.add(new Entity(id, type, new Coordinate(x, y), shieldLife, isControlled, health, new SpeedVector(vx, vy), nearBase, threatFor)); 
                     monstersIndex++;
                 }else if(type == 1){
                     myHeroes[myHeroesIndex] = new Entity(id, type, new Coordinate(x, y), shieldLife, isControlled, health, new SpeedVector(vx, vy), nearBase, threatFor);
@@ -78,38 +83,91 @@ class Player {
             }
 
             //Find the monsters which will eventually reach my base
-            for(int i = 0; i < monsters.length; i++){
-                if(monsters[i].getThreatFor() == 1){
-                    myMonsters.add(monsters[i]);
-                }
+            for(int i = 0; i < monsters.size(); i++){
+                if(monsters.get(i).getThreatFor() == 1){
+                    myMonsters.add(monsters.get(i));
+                }else{
+                    otherMonsters.add(monsters.get(i));
+                };
             }
-            sortList(myMonsters, myRoot);
-            int amountOfMonstersReachBase = -1;
+            for (Entity entity : myMonsters) {
+                entity.TurnsToReachBase(myRoot);
+            }
+            Collections.sort(myMonsters);
+            sortList(otherMonsters, myRoot);
+            int myMonstersIndex = -1;
             if(!myMonsters.isEmpty()){
-                amountOfMonstersReachBase = myMonsters.size();           
+                myMonstersIndex = myMonsters.size();           
             }
 
+            int otherMonsterIndex = 0;
+
             for (int i = 0; i < heroesPerPlayer; i++) {
-                if(amountOfMonstersReachBase > 0){
-                    System.out.println("MOVE " + myMonsters.get(myMonsters.size() - amountOfMonstersReachBase).getCoordinate());
-                    amountOfMonstersReachBase--;
+                if(myMonstersIndex > 0){
+                    Entity myMonstersObj = myMonsters.get(myMonsters.size() - myMonstersIndex);
+                    if(mine.getMana() > 20){
+                        if((myMonstersObj.getDistance(myRoot) < 5000f) && (Distance(myHeroes[i], myMonstersObj.getCoordinate()) < 1280)){
+                            System.out.println("SPELL WIND " + enemyRoot);
+                        }else{
+                            System.out.println("MOVE " + myMonstersObj.getCoordinate());
+                        }
+                    }else{
+                        System.out.println("MOVE " + myMonstersObj.getCoordinate());
+                    }
+                    myMonstersIndex--;
+                }else if(otherMonsters.size() > otherMonsterIndex){
+                    System.out.println("MOVE " + otherMonsters.get(otherMonsterIndex).getCoordinate());
+                    otherMonsterIndex++;
                 }else{
-                    System.out.println("MOVE 6800 3800");
-                }          
+                    StablePosition(myBase, i);
+                }         
 
 
                 // In the first league: MOVE <x> <y> | WAIT; In later leagues: | SPELL <spellParams>;
                 
             }
             //Debug
-            System.err.println("My base is: " + myBase);
-            System.err.println("Mine's stats: " + mine.getBaseHealth() + " " + mine.getMana());
-            System.err.println("Enemy's stats: " + enemy.getBaseHealth() + " " + enemy.getMana());
+            /*
+            if(!myMonsters.isEmpty()){
+                System.err.println("Vector of monsters " + myMonsters.get(0).getId() + ": " + myMonsters.get(0).getSpeedVector());
+            }*/
+            if(!otherMonsters.isEmpty()){
+                System.err.println("Other monster: " + monsters.get(0).getId());
+            }
+            //System.err.println("My base is: " + myBase);
+            //System.err.println("My heroes are: " + myHeroes[0].getId() + ":" + myHeroes[0].getCoordinate() + ", " + myHeroes[1].getId() + ":" + myHeroes[1].getCoordinate() + ", " + myHeroes[2].getId()+ ":" + myHeroes[2].getCoordinate());
+            //System.err.println("Mine's stats: " + mine.getBaseHealth() + " " + mine.getMana());
+            //System.err.println("Enemy's stats: " + enemy.getBaseHealth() + " " + enemy.getMana());
             System.err.println("Monsters: " + myMonsters.size());
             System.err.println("\t " + myMonsters);
+            in.close();
         }
     }
+    //Heroes move
+    public void HeroesMove(ArrayList<Entity> myMonsters, Entity[] myHeroes, int i){
     
+    }
+
+    public static void StablePosition(int myBase, int i){
+        if(myBase == 0){
+            if(i == 0){
+                System.out.println("MOVE 1500 1500");
+            }else if(i == 1){
+                System.out.println("MOVE 9000 3000");
+            }else{
+                System.out.println("MOVE 5000 6000");
+            }
+        }else{
+            if(i == 0){
+                System.out.println("MOVE 16130 7500");
+            }else if(i == 1){
+                System.out.println("MOVE 8630 6000");
+            }else {
+                System.out.println("MOVE 12630 3000");
+            }
+        }
+    }
+
     //Sorting array list by distance
     public static void sortList(ArrayList<Entity> myMonsters, Coordinate root){
         Collections.sort(myMonsters, new Comparator<Entity>(){
@@ -120,7 +178,7 @@ class Player {
     }
 
     //Calculate distance
-    public int Distance(Entity unit, Coordinate root){         
+    public static int Distance(Entity unit, Coordinate root){         
         int distance = 0;
         int slotX = unit.getCoordinate().getX();
         int slotY = unit.getCoordinate().getY();
@@ -183,11 +241,9 @@ class Resource{
     }
 }
 
-class Entity{
+class Entity implements Comparable<Entity>{
     private int id;
     private int type;
-    public Entity() {
-    }
     private Coordinate coordinate;
     private int shieldLife;
     private int isControlled;
@@ -195,6 +251,15 @@ class Entity{
     private SpeedVector speedVector;
     private int nearBase;
     private int threatFor;
+    private int turns;
+    public int getTurns() {
+        return turns;
+    }
+    public void setTurns(int turns) {
+        this.turns = turns;
+    }
+    public Entity() {
+    }
     public int getId() {
         return id;
     }
@@ -261,10 +326,31 @@ class Entity{
         this.nearBase = nearBase;
         this.threatFor = threatFor;
     }
-    public Float getDistance(Coordinate root){
-        float distance = (int) Math.sqrt(Math.pow(Math.abs(coordinate.getX() - root.getX()), 2) + Math.pow(Math.abs(coordinate.getY() - root.getY()), 2));
+    public Float getDistance(Coordinate myRoot){
+        float distance = (int) Math.sqrt(Math.pow(Math.abs(coordinate.getX() - myRoot.getX()), 2) + Math.pow(Math.abs(coordinate.getY() - myRoot.getY()), 2));
         return distance;
     }
+
+
+    public Float getDistance(Coordinate monster, Coordinate myRoot){
+        float distance = (int) Math.sqrt(Math.pow(Math.abs(monster.getX() - monster.getX()), 2) + Math.pow(Math.abs(monster.getY() - monster.getY()), 2));
+        return distance;
+    }
+
+    public void TurnsToReachBase(Coordinate myRoot){
+        Coordinate temp = new Coordinate(coordinate.getX(), coordinate.getY());
+        float tempDistance = getDistance(temp, myRoot);
+        while (tempDistance > 300f){
+            temp = new Coordinate(temp.getX() + this.speedVector.getVx(), temp.getY() + this.speedVector.getVy());
+            turns++;
+        }
+    }
+
+    @Override
+    public int compareTo(Entity obj){
+        return this.turns - obj.turns;
+    }
+
     @Override
     public String toString(){
         return this.id + ":" + this.health;
@@ -290,5 +376,9 @@ class SpeedVector{
     }
     public void setVy(int vy) {
         this.vy = vy;
+    }
+    @Override
+    public String toString(){
+        return this.vx + " " + this.vy;
     }
 }
