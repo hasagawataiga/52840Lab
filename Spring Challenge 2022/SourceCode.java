@@ -5,6 +5,7 @@ import java.math.*;
 /**
  * Auto-generated code below aims at helping you parse
  * the standard input according to the problem statement.
+ * Version:2.0
  **/
 class Player {
 
@@ -37,6 +38,9 @@ class Player {
         ArrayList<Entity> monsters = new ArrayList<Entity>();
         int monstersIndex = 0;
         ArrayList<Entity> myMonsters = new ArrayList<Entity>();
+        ArrayList<Entity> firstHeroMonsters = new ArrayList<Entity>();
+        ArrayList<Entity> secondHeroMonsters = new ArrayList<Entity>();
+        ArrayList<Entity> thirdHeroMonster = new ArrayList<Entity>();
         ArrayList<Entity> otherMonsters = new ArrayList<Entity>();
         // game loop
         while (true) {
@@ -71,13 +75,13 @@ class Player {
                 int nearBase = in.nextInt(); // 0=monster with no target yet, 1=monster targeting a base
                 int threatFor = in.nextInt(); // Given this monster's trajectory, is it a threat to 1=your base, 2=your opponent's base, 0=neither
                 if(type == 0){
-                    monsters.add(new Entity(id, type, new Coordinate(x, y), shieldLife, isControlled, health, new SpeedVector(vx, vy), nearBase, threatFor)); 
+                    monsters.add(new Entity(id, type, new Coordinate(x, y), shieldLife, isControlled, health, new SpeedVector(vx, vy), nearBase, threatFor, myRoot)); 
                     monstersIndex++;
                 }else if(type == 1){
-                    myHeroes[myHeroesIndex] = new Entity(id, type, new Coordinate(x, y), shieldLife, isControlled, health, new SpeedVector(vx, vy), nearBase, threatFor);
+                    myHeroes[myHeroesIndex] = new Entity(id, type, new Coordinate(x, y), shieldLife, isControlled, health, new SpeedVector(vx, vy), nearBase, threatFor, myRoot);
                     myHeroesIndex++;
                 }else {
-                    enemyHeroes[enemyHeroesIndex] = new Entity(id, type, new Coordinate(x, y), shieldLife, isControlled, health, new SpeedVector(vx, vy), nearBase, threatFor);
+                    enemyHeroes[enemyHeroesIndex] = new Entity(id, type, new Coordinate(x, y), shieldLife, isControlled, health, new SpeedVector(vx, vy), nearBase, threatFor, myRoot);
                     enemyHeroesIndex++;
                 }
             }
@@ -97,12 +101,53 @@ class Player {
             sortList(otherMonsters, myRoot);
             int myMonstersIndex = -1;
             if(!myMonsters.isEmpty()){
-                myMonstersIndex = myMonsters.size();           
+                myMonstersIndex = myMonsters.size();
+                firstHeroMonsters = DistributedMonster(myMonsters, 5000f, 0f, myRoot);
+                Collections.sort(firstHeroMonsters);
+                secondHeroMonsters = DistributedMonster(myMonsters, 10000f, 5000f, myRoot);
+                Collections.sort(secondHeroMonsters);
             }
 
             int otherMonsterIndex = 0;
 
             for (int i = 0; i < heroesPerPlayer; i++) {
+                if(i==0){
+                    if(firstHeroMonsters.size() > 0){
+                        if(mine.getMana() > 30){
+                            if(Distance(myHeroes[0], firstHeroMonsters.get(0).getCoordinate()) < 1280){
+                                System.out.println("SPELL WIND " + enemyRoot);
+                            }else{
+                                System.out.println("MOVE " + firstHeroMonsters.get(0).getCoordinate());
+                            }
+                        }else{System.out.println("MOVE " + firstHeroMonsters.get(0).getCoordinate());}
+                    }else{
+                        StablePosition(myBase, i);
+                    }
+                }else{
+                    if(mine.getMana() > 30){
+                        if(secondHeroMonsters.size() >= i){
+                            if(Distance(myHeroes[i], secondHeroMonsters.get(i - 1).getCoordinate()) < 1280){
+                                System.out.println("SPELL CONTROL " + secondHeroMonsters.get(i - 1).getId() + " " + enemyRoot);
+                            }else{
+                                System.out.println("MOVE " + secondHeroMonsters.get(i - 1).getCoordinate());
+                            }
+                        }else if(otherMonsters.size() > 1){
+                            System.out.println("MOVE " + otherMonsters.get(i - 1).getCoordinate());
+                        }else{
+                            StablePosition(myBase, i);
+                        }
+                    }else{
+                        if(secondHeroMonsters.size() >= i){
+                            System.out.println("MOVE " + secondHeroMonsters.get(i - 1).getCoordinate());
+                        }else if(otherMonsters.size() > 1){
+                            System.out.println("MOVE " + otherMonsters.get(i - 1).getCoordinate());
+                        }else{
+                            StablePosition(myBase, i);
+                        }
+                    }
+                }
+
+                /*
                 if(myMonstersIndex > 0){
                     Entity myMonstersObj = myMonsters.get(myMonsters.size() - myMonstersIndex);
                     if(mine.getMana() > 20){
@@ -122,7 +167,8 @@ class Player {
                     otherMonsterIndex++;
                 }else{
                     StablePosition(myBase, i);
-                }         
+                }*/
+         
 
 
                 // In the first league: MOVE <x> <y> | WAIT; In later leagues: | SPELL <spellParams>;
@@ -133,6 +179,12 @@ class Player {
             if(!myMonsters.isEmpty()){
                 System.err.println("Vector of monsters " + myMonsters.get(0).getId() + ": " + myMonsters.get(0).getSpeedVector());
             }*/
+            if(!firstHeroMonsters.isEmpty()){
+                System.err.println("7000radius: " + firstHeroMonsters.get(0).getId());
+            }
+            if(!secondHeroMonsters.isEmpty()){
+                System.err.println(">7000radius: " + secondHeroMonsters.get(0).getId());
+            }
             if(!otherMonsters.isEmpty()){
                 System.err.println("Other monster: " + monsters.get(0).getId());
             }
@@ -144,6 +196,17 @@ class Player {
             System.err.println("\t " + myMonsters);
         }
     }
+
+    public static ArrayList<Entity> DistributedMonster(ArrayList<Entity> myMonsters, float maxDistance, float minDistance, Coordinate myRoot){
+        ArrayList<Entity> result = new ArrayList<Entity>();
+        for(Entity entity : myMonsters){
+            if((entity.getDistance(myRoot) < maxDistance) && (entity.getDistance(myRoot) > minDistance)){
+                result.add(entity);
+            }
+        };
+        return result;
+    }
+
     //Heroes move
     public void HeroesMove(ArrayList<Entity> myMonsters, Entity[] myHeroes, int i){
     
@@ -253,7 +316,14 @@ class Entity implements Comparable<Entity>{
     private int nearBase;
     private int threatFor;
     private int turns;
-    public int getTurns() {
+    private float distance;
+    public float getDistance() {
+		return distance;
+	}
+	public void setDistance(float distance) {
+		this.distance = distance;
+	}
+	public int getTurns() {
         return turns;
     }
     public void setTurns(int turns) {
@@ -326,6 +396,20 @@ class Entity implements Comparable<Entity>{
         this.speedVector = speedVector;
         this.nearBase = nearBase;
         this.threatFor = threatFor;
+    }
+    public Entity(int id, int type, Coordinate coordinate, int shieldLife, int isControlled, int health,
+            SpeedVector speedVector, int nearBase, int threatFor, Coordinate myRoot) {
+        this.id = id;
+        this.type = type;
+        this.coordinate = coordinate;
+        this.shieldLife = shieldLife;
+        this.isControlled = isControlled;
+        this.health = health;
+        this.speedVector = speedVector;
+        this.nearBase = nearBase;
+        this.threatFor = threatFor;
+        getDistance(myRoot);
+        TurnsToReachBase(myRoot);
     }
     public Float getDistance(Coordinate myRoot){
         float distance = (int) Math.sqrt(Math.pow(Math.abs(coordinate.getX() - myRoot.getX()), 2) + Math.pow(Math.abs(coordinate.getY() - myRoot.getY()), 2));
